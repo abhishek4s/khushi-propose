@@ -43,61 +43,7 @@
       box-shadow:0 20px 50px rgba(128,15,47,0.12);
     }
 
-    h2{
-      margin:0 0 12px;
-      font-weight:600;
-      color:var(--text);
-      letter-spacing:.3px;
-      font-size:28px;
-      line-height:1.25;
-    }
-
-    p{
-      margin:0 0 20px;
-      color:var(--muted);
-      font-size:16px;
-    }
-
-    .hint{
-      font-size:12px;
-      color:#7a7a7a;
-      margin-top:14px;
-    }
-
-    .btn{
-      font-size:18px;
-      padding:12px 30px;
-      border-radius:999px;
-      border:0;
-      cursor:pointer;
-      margin:8px;
-      transition: transform .12s ease, box-shadow .12s ease;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-
-    #yes{
-      background: linear-gradient(135deg, var(--rose), var(--rose2));
-      color:#fff;
-      box-shadow:0 12px 24px rgba(201,24,74,.35);
-    }
-    #yes:hover{
-      transform: translateY(-2px) scale(1.04);
-      box-shadow:0 18px 36px rgba(201,24,74,.45);
-    }
-
-    #no{
-      background:#f1f1f1;
-      color:#333;
-      position:absolute;
-      left:55%;
-      top:58%;
-      box-shadow:0 10px 20px rgba(0,0,0,.12);
-      /* smooth movement */
-      transition: left .12s ease, top .12s ease, transform .12s ease;
-    }
-
-    /* subtle shimmer on card */
+    /* subtle shimmer */
     .card::after{
       content:"";
       position:absolute;
@@ -112,6 +58,76 @@
       opacity:0.35;
       pointer-events:none;
     }
+
+    h2{
+      margin:0 0 12px;
+      font-weight:600;
+      color:var(--text);
+      letter-spacing:.3px;
+      font-size:28px;
+      line-height:1.25;
+      position:relative;
+      z-index:1;
+    }
+
+    p{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:16px;
+      position:relative;
+      z-index:1;
+    }
+
+    .hint{
+      font-size:12px;
+      color:#7a7a7a;
+      margin-top:14px;
+      position:relative;
+      z-index:1;
+    }
+
+    .btn{
+      font-size:18px;
+      padding:12px 30px;
+      border-radius:999px;
+      border:0;
+      cursor:pointer;
+      margin:8px;
+      transition: transform .12s ease, box-shadow .12s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      position:relative;
+      z-index:2;
+    }
+
+    #yes{
+      background: linear-gradient(135deg, var(--rose), var(--rose2));
+      color:#fff;
+      box-shadow:0 12px 24px rgba(201,24,74,.35);
+    }
+    #yes:hover{
+      transform: translateY(-2px) scale(1.04);
+      box-shadow:0 18px 36px rgba(201,24,74,.45);
+    }
+
+    /* local playground for NO button so it never disappears */
+    .btnRow{
+      position:relative;
+      height:120px;     /* area where NO can run */
+      margin-top:6px;
+      z-index:2;
+    }
+
+    #no{
+      background:#f1f1f1;
+      color:#333;
+      position:absolute;     /* moves inside .btnRow */
+      left:60%;
+      top:10px;
+      box-shadow:0 10px 20px rgba(0,0,0,.12);
+      transition: left .12s ease, top .12s ease, transform .12s ease;
+      z-index:5;            /* stays visible */
+    }
   </style>
 </head>
 
@@ -120,35 +136,47 @@
     <h2>Khushi, will you be mine? 💖</h2>
     <p>Not just today… but every day</p>
 
-    <button class="btn" id="yes" onclick="yesClicked()">YES</button>
-    <button class="btn" id="no" onmouseover="moveNo()" ontouchstart="moveNo()">NO</button>
+    <div class="btnRow" id="btnArea">
+      <button class="btn" id="yes" onclick="yesClicked()">YES</button>
+      <!-- mouseenter makes it move instantly when you get close -->
+      <button class="btn" id="no" onmouseenter="moveNo()" ontouchstart="moveNo()">NO</button>
+    </div>
 
-    <div class="hint">(Spoiler: NO is not supported 😌)</div>
+    <div class="hint" id="hintLine">(Spoiler: NO is not supported 😌)</div>
+    <div class="hint" id="tease"></div>
   </div>
 
   <script>
-    // Enhancement 2 — NO gets more “panicked” each time 😏
+    // NO gets more “panicked” each time 😏 + teasing messages
     let tries = 0;
 
-    function moveNo() {
+    function moveNo(){
       tries++;
 
       const noBtn = document.getElementById("no");
-      const padding = 16;
+      const area  = document.getElementById("btnArea");
+      const tease = document.getElementById("tease");
 
-      // Keep button within viewport
-      const maxX = window.innerWidth - noBtn.offsetWidth - padding;
-      const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+      // teasing text milestones
+      if (tries === 3) tease.textContent = "Nice try 😏";
+      if (tries === 6) tease.textContent = "NO is not available. Please click YES ❤️";
+      if (tries >= 9) tease.textContent = "Okay okay… JUST CLICK YES 😭❤️";
 
-      const x = padding + Math.random() * Math.max(1, (maxX - padding));
-      const y = padding + Math.random() * Math.max(1, (maxY - padding));
+      const padding = 8;
+
+      // keep within the button area
+      const maxX = area.clientWidth  - noBtn.offsetWidth  - padding;
+      const maxY = area.clientHeight - noBtn.offsetHeight - padding;
+
+      const x = padding + Math.random() * Math.max(1, maxX);
+      const y = padding + Math.random() * Math.max(1, maxY);
 
       noBtn.style.left = x + "px";
       noBtn.style.top  = y + "px";
 
-      // Panic effect: slight growth + random tilt
-      const scale = 1 + Math.min(tries, 6) * 0.03;
-      const rot = (Math.random() * 16 - 8).toFixed(1);
+      // panic effect: grows + shakes (tilt)
+      const scale = 1 + Math.min(tries, 10) * 0.03;
+      const rot   = (Math.random() * 24 - 12).toFixed(1);
       noBtn.style.transform = `scale(${scale}) rotate(${rot}deg)`;
     }
 
@@ -160,15 +188,15 @@
             Khushi, I’ll choose you — every day🌸
           </p>
           <p style="margin:0; color:#6b6b6b;">Happy Propose Day 💖</p>
+          <div class="hint" style="margin-top:16px;">(You just made my heart very happy 😌)</div>
         </div>
       `;
     }
 
-    // Optional: if user rotates phone / resizes, nudge NO to stay visible
+    // If screen resizes, make sure NO stays in bounds
     window.addEventListener("resize", () => {
       const noBtn = document.getElementById("no");
       if (!noBtn) return;
-      // Only nudge if it might be off-screen
       const rect = noBtn.getBoundingClientRect();
       if (rect.right > window.innerWidth || rect.bottom > window.innerHeight || rect.left < 0 || rect.top < 0) {
         moveNo();
