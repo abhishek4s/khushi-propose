@@ -4,92 +4,176 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Khushi 💖</title>
+
   <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: Arial, sans-serif;
-      background: #ffffff;
-      overflow: hidden;
+    :root{
+      --rose:#c9184a;
+      --rose2:#ff758f;
+      --text:#2b2b2b;
+      --muted:#6b6b6b;
+      --card: rgba(255,255,255,0.62);
     }
-    .card {
-      text-align: center;
-      padding: 24px;
-      max-width: 520px;
+
+    body{
+      margin:0;
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:"Poppins", Arial, sans-serif;
+      overflow:hidden;
+
+      /* Theme 1 — Lover (romantic rose + blush) */
+      background:
+        radial-gradient(circle at 20% 20%, #ffe5ec 0%, transparent 45%),
+        radial-gradient(circle at 80% 30%, #ffccd5 0%, transparent 45%),
+        radial-gradient(circle at 50% 80%, #fff0f3 0%, transparent 55%),
+        linear-gradient(180deg, #fff0f3 0%, #ffffff 100%);
     }
-    h2 {
-      margin: 0 0 18px;
-      font-weight: 600;
-      color: #222;
+
+    .card{
+      position:relative;
+      text-align:center;
+      padding:34px 30px;
+      width:min(560px, calc(100vw - 40px));
+      border-radius:26px;
+      background:var(--card);
+      backdrop-filter: blur(12px);
+      border:1px solid rgba(255,255,255,0.7);
+      box-shadow:0 20px 50px rgba(128,15,47,0.12);
     }
-    p {
-      margin: 0 0 18px;
-      color: #555;
+
+    h2{
+      margin:0 0 12px;
+      font-weight:600;
+      color:var(--text);
+      letter-spacing:.3px;
+      font-size:28px;
+      line-height:1.25;
     }
-    .btn {
-      font-size: 18px;
-      padding: 12px 28px;
-      border-radius: 999px;
-      border: 0;
-      cursor: pointer;
-      margin: 8px;
+
+    p{
+      margin:0 0 20px;
+      color:var(--muted);
+      font-size:16px;
     }
-    #yes {
-      background: #ff4d6d;
-      color: white;
+
+    .hint{
+      font-size:12px;
+      color:#7a7a7a;
+      margin-top:14px;
     }
-    #no {
-      background: #e0e0e0;
-      color: #222;
-      position: absolute; /* lets it move anywhere */
-      left: 55%;
-      top: 58%;
+
+    .btn{
+      font-size:18px;
+      padding:12px 30px;
+      border-radius:999px;
+      border:0;
+      cursor:pointer;
+      margin:8px;
+      transition: transform .12s ease, box-shadow .12s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-    .hint {
-      font-size: 12px;
-      color: #777;
-      margin-top: 10px;
+
+    #yes{
+      background: linear-gradient(135deg, var(--rose), var(--rose2));
+      color:#fff;
+      box-shadow:0 12px 24px rgba(201,24,74,.35);
+    }
+    #yes:hover{
+      transform: translateY(-2px) scale(1.04);
+      box-shadow:0 18px 36px rgba(201,24,74,.45);
+    }
+
+    #no{
+      background:#f1f1f1;
+      color:#333;
+      position:absolute;
+      left:55%;
+      top:58%;
+      box-shadow:0 10px 20px rgba(0,0,0,.12);
+      /* smooth movement */
+      transition: left .12s ease, top .12s ease, transform .12s ease;
+    }
+
+    /* subtle shimmer on card */
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius:26px;
+      background: linear-gradient(
+        120deg,
+        transparent 20%,
+        rgba(255,255,255,0.4),
+        transparent 80%
+      );
+      opacity:0.35;
+      pointer-events:none;
     }
   </style>
 </head>
-<body>
 
-  <div class="card">
+<body>
+  <div class="card" id="card">
     <h2>Khushi, will you be mine? 💖</h2>
-    <p>Choose wisely 😏</p>
+    <p>Not just today… but every day</p>
 
     <button class="btn" id="yes" onclick="yesClicked()">YES</button>
     <button class="btn" id="no" onmouseover="moveNo()" ontouchstart="moveNo()">NO</button>
 
-    <div class="hint">(Try tapping NO if you can 😉)</div>
+    <div class="hint">(Spoiler: NO is not supported 😌)</div>
   </div>
 
   <script>
-    function moveNo() {
-      const noBtn = document.getElementById("no");
-      const maxX = window.innerWidth - 140;
-      const maxY = window.innerHeight - 80;
+    // Enhancement 2 — NO gets more “panicked” each time 😏
+    let tries = 0;
 
-      const x = Math.random() * maxX;
-      const y = Math.random() * maxY;
+    function moveNo() {
+      tries++;
+
+      const noBtn = document.getElementById("no");
+      const padding = 16;
+
+      // Keep button within viewport
+      const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+      const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+
+      const x = padding + Math.random() * Math.max(1, (maxX - padding));
+      const y = padding + Math.random() * Math.max(1, (maxY - padding));
 
       noBtn.style.left = x + "px";
-      noBtn.style.top = y + "px";
+      noBtn.style.top  = y + "px";
+
+      // Panic effect: slight growth + random tilt
+      const scale = 1 + Math.min(tries, 6) * 0.03;
+      const rot = (Math.random() * 16 - 8).toFixed(1);
+      noBtn.style.transform = `scale(${scale}) rotate(${rot}deg)`;
     }
 
     function yesClicked() {
       document.body.innerHTML = `
-        <div style="text-align:center;font-family:Arial,sans-serif;padding:30px">
-          <h1 style="color:#ff4d6d;margin:0 0 10px">Yay! ❤️</h1>
-          <p style="font-size:20px;margin:0">You just made my day, Khushi 🌸</p>
-          <p style="color:#666;margin-top:12px">Happy Propose Day 💖</p>
+        <div class="card" style="max-width:520px">
+          <h2 style="color:#c9184a; font-size:46px; margin:0 0 12px;">Yay! ❤️</h2>
+          <p style="font-size:20px; margin:0 0 10px; color:#2b2b2b;">
+            Khushi, I’ll choose you — every day🌸
+          </p>
+          <p style="margin:0; color:#6b6b6b;">Happy Propose Day 💖</p>
         </div>
       `;
     }
-  </script>
 
+    // Optional: if user rotates phone / resizes, nudge NO to stay visible
+    window.addEventListener("resize", () => {
+      const noBtn = document.getElementById("no");
+      if (!noBtn) return;
+      // Only nudge if it might be off-screen
+      const rect = noBtn.getBoundingClientRect();
+      if (rect.right > window.innerWidth || rect.bottom > window.innerHeight || rect.left < 0 || rect.top < 0) {
+        moveNo();
+      }
+    });
+  </script>
 </body>
 </html>
