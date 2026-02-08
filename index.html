@@ -60,19 +60,28 @@
       margin:0 0 12px;
       font-weight:600;
       color:var(--text);
+      letter-spacing:.3px;
       font-size:28px;
+      line-height:1.25;
+      position:relative;
+      z-index:1;
     }
 
     p{
       margin:0 0 18px;
       color:var(--muted);
       font-size:16px;
+      position:relative;
+      z-index:1;
     }
 
     .hint{
       font-size:12px;
       color:#7a7a7a;
       margin-top:14px;
+      position:relative;
+      z-index:1;
+      min-height:16px;
     }
 
     .btn{
@@ -82,18 +91,28 @@
       border:0;
       cursor:pointer;
       margin:8px;
-      transition:.12s ease;
+      transition: transform .12s ease, box-shadow .12s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      position:relative;
+      z-index:2;
     }
 
     #yes{
-      background:linear-gradient(135deg,var(--rose),var(--rose2));
-      color:white;
+      background: linear-gradient(135deg, var(--rose), var(--rose2));
+      color:#fff;
       box-shadow:0 12px 24px rgba(201,24,74,.35);
+    }
+    #yes:hover{
+      transform: translateY(-2px) scale(1.04);
+      box-shadow:0 18px 36px rgba(201,24,74,.45);
     }
 
     .btnRow{
       position:relative;
       height:120px;
+      margin-top:6px;
+      z-index:2;
     }
 
     #no{
@@ -103,109 +122,132 @@
       left:60%;
       top:10px;
       box-shadow:0 10px 20px rgba(0,0,0,.12);
-      transition:left .12s, top .12s, transform .12s;
+      transition: left .12s ease, top .12s ease, transform .12s ease;
+      z-index:5;
     }
 
-    /* Music toggle */
-    .musicToggle{
+    /* minimal “enable music” pill (only shows if Chrome blocks autoplay) */
+    #enableMusic{
+      display:none;
       position:fixed;
       bottom:18px;
-      right:18px;
-      background:white;
-      border-radius:50%;
-      width:46px;
-      height:46px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:20px;
+      left:50%;
+      transform:translateX(-50%);
+      padding:10px 14px;
+      border:0;
+      border-radius:999px;
+      background:rgba(255,255,255,0.92);
+      box-shadow:0 10px 25px rgba(0,0,0,0.12);
       cursor:pointer;
-      box-shadow:0 10px 25px rgba(0,0,0,.12);
+      font-size:14px;
+      color:#333;
     }
   </style>
 </head>
 
 <body>
-
   <div class="card" id="card">
     <h2>Khushi, will you be mine? 💖</h2>
     <p>Not just today… but every day</p>
 
     <div class="btnRow" id="btnArea">
       <button class="btn" id="yes" onclick="yesClicked()">YES</button>
-      <button class="btn" id="no" onmouseenter="moveNo()" ontouchstart="moveNo()">NO</button>
+      <button class="btn" id="no" onmouseenter="moveNo()">NO</button>
     </div>
 
     <div class="hint">(Spoiler: NO is not supported 😌)</div>
     <div class="hint" id="tease"></div>
-    <div class="hint">🎶 Music starts after you choose ❤️</div>
   </div>
 
-  <!-- Background music -->
-  <audio id="bgMusic" loop>
+  <audio id="bgMusic" loop preload="auto">
     <source src="music.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Music toggle -->
-  <div class="musicToggle" id="musicBtn">🔇</div>
+  <button id="enableMusic">▶ Tap to enable music</button>
 
   <script>
+    // ---------- NO button panic ----------
     let tries = 0;
-    const music = document.getElementById("bgMusic");
-    const btn   = document.getElementById("musicBtn");
 
     function moveNo(){
       tries++;
+
       const noBtn = document.getElementById("no");
       const area  = document.getElementById("btnArea");
       const tease = document.getElementById("tease");
 
-      if(tries===3) tease.textContent="Nice try 😏";
-      if(tries===6) tease.textContent="Only YES works ❤️";
-      if(tries>=9) tease.textContent="Okay okay… click YES 😭";
+      if (tries === 3) tease.textContent = "Nice try 😏";
+      if (tries === 6) tease.textContent = "Only YES works ❤️";
+      if (tries >= 9) tease.textContent = "Okay okay… click YES 😭";
 
-      const maxX = area.clientWidth - noBtn.offsetWidth;
-      const maxY = area.clientHeight - noBtn.offsetHeight;
+      const padding = 8;
+      const maxX = area.clientWidth  - noBtn.offsetWidth  - padding;
+      const maxY = area.clientHeight - noBtn.offsetHeight - padding;
 
-      noBtn.style.left = Math.random()*maxX + "px";
-      noBtn.style.top  = Math.random()*maxY + "px";
-      noBtn.style.transform =
-        `scale(${1+Math.min(tries,10)*0.03}) rotate(${Math.random()*20-10}deg)`;
+      const x = padding + Math.random() * Math.max(1, maxX);
+      const y = padding + Math.random() * Math.max(1, maxY);
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top  = y + "px";
+
+      const scale = 1 + Math.min(tries, 10) * 0.03;
+      const rot   = (Math.random() * 24 - 12).toFixed(1);
+      noBtn.style.transform = `scale(${scale}) rotate(${rot}deg)`;
     }
 
-    function yesClicked(){
-      fadeInMusic();
+    // ---------- Chrome-friendly music start ----------
+    const music = document.getElementById("bgMusic");
+    const enableBtn = document.getElementById("enableMusic");
+    let musicStarted = false;
+
+    function fadeInMusic(targetVol=0.35){
+      music.volume = 0;
+      let v = 0;
+      const fade = setInterval(() => {
+        v += 0.03;
+        music.volume = Math.min(v, targetVol);
+        if (v >= targetVol) clearInterval(fade);
+      }, 100);
+    }
+
+    async function tryStartMusic(){
+      if (musicStarted) return true;
+      try{
+        await music.play();         // will often fail on Chrome if no interaction yet
+        musicStarted = true;
+        enableBtn.style.display = "none";
+        fadeInMusic(0.35);
+        return true;
+      }catch(e){
+        enableBtn.style.display = "block";
+        return false;
+      }
+    }
+
+    // Attempt immediately on landing (may be blocked)
+    window.addEventListener("load", () => {
+      tryStartMusic();
+    });
+
+    // If blocked, first user interaction will start it
+    const unlock = () => tryStartMusic();
+    document.addEventListener("click", unlock, { once:true });
+    document.addEventListener("keydown", unlock, { once:true });
+    enableBtn.addEventListener("click", unlock);
+
+    // YES click also starts music (backup)
+    async function yesClicked(){
+      await tryStartMusic();
       document.body.innerHTML = `
-        <div class="card">
-          <h2 style="color:#c9184a;font-size:46px;">Yay! ❤️</h2>
-          <p style="font-size:20px;">Khushi, I’ll choose you — every day 🌸</p>
-          <p>Happy Propose Day 💖</p>
+        <div class="card" style="max-width:520px">
+          <h2 style="color:#c9184a; font-size:46px; margin:0 0 12px;">Yay! ❤️</h2>
+          <p style="font-size:20px; margin:0 0 10px; color:#2b2b2b;">
+            Khushi, I’ll choose you — every day🌸
+          </p>
+          <p style="margin:0; color:#6b6b6b;">Happy Propose Day 💖</p>
         </div>
       `;
     }
-
-    function fadeInMusic(){
-      music.volume = 0;
-      music.play();
-      let v = 0;
-      const fade = setInterval(()=>{
-        v += 0.02;
-        music.volume = Math.min(v,0.4);
-        if(v>=0.4) clearInterval(fade);
-      },100);
-      btn.textContent="🔊";
-    }
-
-    btn.onclick = ()=>{
-      if(music.paused){
-        music.play();
-        btn.textContent="🔊";
-      }else{
-        music.pause();
-        btn.textContent="🔇";
-      }
-    };
   </script>
-
 </body>
 </html>
