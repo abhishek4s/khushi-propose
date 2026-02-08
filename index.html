@@ -5,10 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Khushi 💖</title>
 
+  <!-- Stylish romantic fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
   <style>
     :root{
       --rose:#c9184a;
       --rose2:#ff758f;
+      --wine:#800f2f;
       --text:#2b2b2b;
       --muted:#6b6b6b;
       --card: rgba(255,255,255,0.62);
@@ -22,6 +26,8 @@
       justify-content:center;
       font-family:"Poppins", Arial, sans-serif;
       overflow:hidden;
+
+      /* Theme 1 — Lover (romantic rose + blush) */
       background:
         radial-gradient(circle at 20% 20%, #ffe5ec 0%, transparent 45%),
         radial-gradient(circle at 80% 30%, #ffccd5 0%, transparent 45%),
@@ -32,27 +38,29 @@
     .card{
       position:relative;
       text-align:center;
-      padding:34px 30px;
-      width:min(560px, calc(100vw - 40px));
-      border-radius:26px;
+      padding:38px 36px;
+      width:min(620px, calc(100vw - 40px));
+      min-height:240px;
+      border-radius:30px;
       background:var(--card);
       backdrop-filter: blur(12px);
       border:1px solid rgba(255,255,255,0.7);
-      box-shadow:0 20px 50px rgba(128,15,47,0.12);
+      box-shadow:0 22px 60px rgba(128,15,47,0.14);
     }
 
+    /* subtle shimmer */
     .card::after{
       content:"";
       position:absolute;
       inset:-1px;
-      border-radius:26px;
+      border-radius:30px;
       background: linear-gradient(
         120deg,
         transparent 20%,
-        rgba(255,255,255,0.4),
+        rgba(255,255,255,0.45),
         transparent 80%
       );
-      opacity:0.35;
+      opacity:0.32;
       pointer-events:none;
     }
 
@@ -60,42 +68,34 @@
       margin:0 0 12px;
       font-weight:600;
       color:var(--text);
-      letter-spacing:.3px;
-      font-size:28px;
-      line-height:1.25;
-      position:relative;
-      z-index:1;
+      font-size:32px;
+      letter-spacing:0.4px;
+      line-height:1.2;
     }
 
     p{
       margin:0 0 18px;
       color:var(--muted);
       font-size:16px;
-      position:relative;
-      z-index:1;
     }
 
-    .hint{
-      font-size:12px;
-      color:#7a7a7a;
-      margin-top:14px;
-      position:relative;
-      z-index:1;
+    .small-note{
+      font-size:13px;
+      color:#777;
+      margin-top:10px;
       min-height:16px;
     }
 
     .btn{
       font-size:18px;
-      padding:12px 30px;
+      padding:12px 34px;
       border-radius:999px;
       border:0;
       cursor:pointer;
       margin:8px;
       transition: transform .12s ease, box-shadow .12s ease;
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      position:relative;
-      z-index:2;
+      user-select:none;
     }
 
     #yes{
@@ -108,11 +108,11 @@
       box-shadow:0 18px 36px rgba(201,24,74,.45);
     }
 
+    /* local playground so NO never disappears */
     .btnRow{
       position:relative;
       height:120px;
-      margin-top:6px;
-      z-index:2;
+      margin-top:4px;
     }
 
     #no{
@@ -122,11 +122,20 @@
       left:60%;
       top:10px;
       box-shadow:0 10px 20px rgba(0,0,0,.12);
-      transition: left .12s ease, top .12s ease, transform .12s ease;
-      z-index:5;
+      transition:left .12s ease, top .12s ease, transform .12s ease;
     }
 
-    /* minimal “enable music” pill (only shows if Chrome blocks autoplay) */
+    /* Stylish Propose Day line */
+    .propose-day{
+      margin-top:14px;
+      font-family:"Playfair Display", serif;
+      font-size:26px;          /* increased size */
+      font-weight:700;         /* stylish + bold */
+      color:var(--wine);
+      letter-spacing:1.2px;
+    }
+
+    /* Minimal play pill shown only if autoplay is blocked */
     #enableMusic{
       display:none;
       position:fixed;
@@ -146,6 +155,7 @@
 </head>
 
 <body>
+
   <div class="card" id="card">
     <h2>Khushi, will you be mine? 💖</h2>
     <p>Not just today… but every day</p>
@@ -155,18 +165,20 @@
       <button class="btn" id="no" onmouseenter="moveNo()">NO</button>
     </div>
 
-    <div class="hint">(Spoiler: NO is not supported 😌)</div>
-    <div class="hint" id="tease"></div>
+    <div class="small-note">(Spoiler: NO is not supported 😌)</div>
+    <div class="small-note" id="tease"></div>
   </div>
 
+  <!-- Music file: keep music.mp3 in same folder as index.html -->
   <audio id="bgMusic" loop preload="auto">
     <source src="music.mp3" type="audio/mpeg">
   </audio>
 
+  <!-- Shows only if Chrome blocks autoplay -->
   <button id="enableMusic">▶ Tap to enable music</button>
 
   <script>
-    // ---------- NO button panic ----------
+    /* ------------------ NO button panic + messages ------------------ */
     let tries = 0;
 
     function moveNo(){
@@ -195,7 +207,7 @@
       noBtn.style.transform = `scale(${scale}) rotate(${rot}deg)`;
     }
 
-    // ---------- Chrome-friendly music start ----------
+    /* ------------------ Music: works on both pages ------------------ */
     const music = document.getElementById("bgMusic");
     const enableBtn = document.getElementById("enableMusic");
     let musicStarted = false;
@@ -210,44 +222,47 @@
       }, 100);
     }
 
-    async function tryStartMusic(){
+    async function startMusic(){
       if (musicStarted) return true;
+
       try{
-        await music.play();         // will often fail on Chrome if no interaction yet
+        await music.play();       // may be blocked in Chrome until interaction
         musicStarted = true;
         enableBtn.style.display = "none";
         fadeInMusic(0.35);
         return true;
       }catch(e){
+        // blocked -> show minimal enable button
         enableBtn.style.display = "block";
         return false;
       }
     }
 
-    // Attempt immediately on landing (may be blocked)
+    // Try immediately on landing
     window.addEventListener("load", () => {
-      tryStartMusic();
+      startMusic();
     });
 
-    // If blocked, first user interaction will start it
-    const unlock = () => tryStartMusic();
+    // First user interaction unlocks audio (Chrome policy)
+    const unlock = () => startMusic();
     document.addEventListener("click", unlock, { once:true });
     document.addEventListener("keydown", unlock, { once:true });
     enableBtn.addEventListener("click", unlock);
 
-    // YES click also starts music (backup)
+    /* ------------------ YES screen (keeps audio alive) ------------------ */
     async function yesClicked(){
-      await tryStartMusic();
-      document.body.innerHTML = `
-        <div class="card" style="max-width:520px">
-          <h2 style="color:#c9184a; font-size:46px; margin:0 0 12px;">Yay! ❤️</h2>
-          <p style="font-size:20px; margin:0 0 10px; color:#2b2b2b;">
-            Khushi, I’ll choose you — every day🌸
-          </p>
-          <p style="margin:0; color:#6b6b6b;">Happy Propose Day 💖</p>
-        </div>
+      await startMusic(); // ensure it starts/continues
+
+      const card = document.getElementById("card");
+      card.innerHTML = `
+        <h2 style="font-size:52px; color:#c9184a; margin:0 0 12px; font-weight:700;">Yay! ❤️</h2>
+        <p style="font-size:22px; margin:0 0 10px; color:#2b2b2b;">
+          Khushi, I’ll choose you — every day 🌸
+        </p>
+        <div class="propose-day">Happy Propose Day 💖</div>
       `;
     }
   </script>
+
 </body>
 </html>
